@@ -1,6 +1,6 @@
 module Lib
-    ( -- someFunc
+    ( doubleX
     ) where
 
--- someFunc :: IO ()
--- someFunc = putStrLn "Hello world"
+doubleX :: Int -> Int
+doubleX = (* 2)
