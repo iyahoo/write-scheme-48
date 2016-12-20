@@ -1,9 +1,11 @@
 module Main where
-import System.Environment
-import Lib
-
+import Text.ParserCombinators.Parsec hiding (spaces)
 
 main :: IO ()
 main = do
-  args <- getArgs
-  putStrLn ("Hello, " ++ args !! 0 ++ " " ++ (show . doubleX $ 3))
+  putStrLn "Please input your name"
+  line <- getLine
+  putStrLn $ "Hello, " ++ line
+
+symbol :: Parser Char
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
