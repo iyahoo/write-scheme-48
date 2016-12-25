@@ -56,7 +56,7 @@ Hello, Nobunaga
 
 に当てはまらない気がしますね。今回の `main` 関数は
 
-```haskell:Main.hs
+```haskell
 main :: IO ()
 -- main = do
 --   args <- getArgs
@@ -66,7 +66,7 @@ main = getArgs >>= \args -> putStrLn ("Hello, " ++ args !! 0)
 
 このように書きかえることができます。 `\args -> putStrLn ("Hello, " ++ args !! 0)` はラムダ式です。また `(>>)` に関しては、雑な例ですが
 
-```haskell:Main.hs
+```haskell
 main :: IO ()
 -- main = do
 --   getLine
@@ -82,7 +82,7 @@ main = getLine >> getArgs >>= \args -> putStrLn ("Hello, " ++ args !! 0)
 自分は競技プログラミングで Haskell を使っていたので、 IO モナド以外にほとんど触ったことがなかったのでこれを意識することは殆どありませんでした。逆に言えば IO モナドだけなんとなくわかっていれば、実際に CLI アプリなどの Haskell のコードは書けるとも言えます。
 
 ### 練習問題 1
-```haskell:main.hs
+```haskell
 module Main where
 import System.Environment
 
@@ -99,7 +99,7 @@ Hello, NobunagaOda
 ```
 
 ### 練習問題 2
-```haskell:main.hs
+```haskell
 module Main where
 import System.Environment
 
@@ -139,7 +139,7 @@ Hello, Nobunaga Oda
 
 `Text.ParserCombinators.Parsec` を main で使うには .cabal を編集する必要がある。
 
-```cabal
+```haskell
 executable scheme48-exe
   hs-source-dirs:      app
   main-is:             Main.hs
@@ -159,7 +159,7 @@ $ ls src/
 Parser.hs
 ```
 
-```cabal
+```haskell
 library
   hs-source-dirs:      src
   exposed-modules:     Parser
@@ -168,7 +168,7 @@ library
   default-language:    Haskell2010
 ```
 
-```haskell:Parser.hs
+```haskell
 module Parser where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
@@ -179,7 +179,7 @@ symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 これは〈symbol というものは "!#$%&|*+-/:<=>?@^\_~" のなかのひとつである〉という定義と読める。この段階では `Parser` という型を持つ関数が何をするのかイメージしずらいかもしれないが、 Bool 値を返す関数である述語に近いだろう。例えば `symbol` であれば、この条件 `oneOf "..."` でが成立すれば、これは真でありそれにマッチしたものを返す、というような。
 
-```haskell:Parser.hs
+```haskell
 readExpr :: String -> String
 readExpr input = case parse symbol "lisp" input of
                    Left err -> "No match" ++ show err
@@ -200,7 +200,7 @@ case exp of
 > Haskellの一般的な慣習に従って、ParsecはEitherデータ型を返します。Left構築子でエラーを、Rightで通常の値を表します。
 の通り Either というのは Haskell では失敗か成功を表すときに用いる型である。 Right というモナド(?)で包まれている方が成功を表し、Left で包まれているのは失敗を表す (型によって分岐させてエラーの場合の処理を書ける)。
 
-```haskell:app/Main.hs
+```haskell
 module Main where
 import System.Environment
 import Parser
@@ -219,7 +219,7 @@ $ stack ghci
 
 とやると
 
-```sh
+```haskell
 *Main Lib Parser>
 ```
 
@@ -229,16 +229,16 @@ $ stack ghci
 (setq haskell-program-name "/path/to/stack ghci")
 ```
 
-というように設定すると、`stack ghci` を使用してロードしたファイルの上に存在する .cabal を探してプロンプトを起動・再読み込みしてくれるのでとても便利なのでこちらをおすすめする。(やってみたらできた :sushi:)
+というように設定すると、`stack ghci` を使用してロードしたファイルの上に存在する .cabal を探してプロンプトを起動・再読み込みしてくれるのでとても便利なのでこちらをおすすめする。(やってみたらできた :sushi:)  
 　ghci を使用する時の注意として現在の `main` は `getArgs` によって実行時の引数を受け取るので
 
-```sh
+```haskell
 *Main Parser> main $
 ```
 
 のようにしてもエラーになってしまう。コマンドラインのようにふるまわせるには ghci の機能 `:main` が使える。
 
-```sh
+```haskell
 *Main Parser> :main $
 Found value
 *Main Parser> :main a
@@ -258,7 +258,7 @@ unexpected "a"
 
 またファイルを分けておきましょう。<!-- 型 はいろいろな場所から参照したくなる場面が多い気がする --> stack を使ってるとファイルを分けても .cabal などを編集する必要が無いので楽です。
 
-```haskell:Datatype.hs
+```haskell
 module Datatype where
 
 data LispVal = Atom String
@@ -276,11 +276,12 @@ data LispVal = Atom String
 なるほど。
 
 Parser.hs では Datatype.hs で定義したデータ型 LispVal を使うので `import` する必要がありますが、その時は単にモジュールを `import` するだけではなく以下のようにします。
-```haskell:Parser.hs
+
+```haskell
 import Datatype (LispVal(..))
 ```
 
-```haskell:Parser.hs
+```haskell
 parseString :: Parser LispVal
 parseString = do char '"'
                  x <- many (noneOf "\"")
@@ -302,7 +303,7 @@ parseString = do char '"'
 
 理解を深めるために do 記法を展開してみましょう。
 
-```haskell:Parser.hs
+```haskell
 parseString :: Parser LispVal
 -- parseString = do char '"'
 --                  x <- many (noneOf "\"")
@@ -319,7 +320,7 @@ do 記法での `x <- many (noneOf "\"")` 以降の全てが引数に `x` を取
 
 これに関しては例を見るのが早いでしょう。
 
-```
+```haskell
 -- ex1
 *> zipWith ($) [\x -> x * 2, \x -> x ^ 2] [1, 2]
 [1,4]
@@ -328,10 +329,10 @@ do 記法での `x <- many (noneOf "\"")` 以降の全てが引数に `x` を取
 [6,9]
 ```
 
-ex1 では `($) :: (a -> b) -> a -> b` を高階関数に渡し、`(a -> b)` 型の関数のリストと `a` 型の値のリストを渡すことにより、その適用結果のリストを得ることができます。ex2 では `($)` とに値を部分適用したものを関数リストに map することで適用結果のリストを得ています。
+ex1 では `($) :: (a -> b) -> a -> b` を高階関数に渡し、`(a -> b)` 型の関数のリストと `a` 型の値のリストを渡すことにより、その適用結果のリストを得ることができます。ex2 では `($)` とに値を部分適用したものを関数リストに map することで適用結果のリストを得ています。  
 　この関数のどのように振る舞うのかを `ghci` で確かめたいと思う人も多いだろう。実装している `parser` 関数 `LispVal` を返すので `Show` のインスタンスにする必要があるので加える。
 
-```haskell:Datatype.hs
+```haskell
 data LispVal = Atom String
              | List [LispVal]
              | DottedList [LispVal] LispVal
@@ -343,7 +344,7 @@ data LispVal = Atom String
 
 これで
 
-```
+```haskell
 $ stack ghci
 <略>
 Ok, modules loaded: Parser, Datatype, Main.
@@ -362,7 +363,7 @@ Right (String "hoge")
 
 これは逆に言えば `atom` としては最初に数字が来ることは認めないということを示している。
 
-```haskell:Parser.hs
+```haskell
 parseAtom :: Parser LispVal
 parseAtom = do first <- letter <|> symbol
                rest  <- many (letter <|> digit <|> symbol)
@@ -373,10 +374,10 @@ parseAtom = do first <- letter <|> symbol
                           _    -> Atom atom
 ```
 
-Parser が述語に近い振舞いをしているというイメージを持っていると `(<|>)` がある程度自然に受けとれるのではないか。拡張された OR 演算子 `(|)` と考えられる。
+Parser が述語に近い振舞いをしているというイメージを持っていると `(<|>)` がある程度自然に受けとれるのではないか。拡張された OR 演算子 `(|)` と考えられる。  
 　慣れが無いと混乱しやすいと思われるが、返り値が `Parse LispVal` であることから `parseAtom` の最後のパターンマッチ式での `Bool` や `Atom` というのは `LispVal` のコンストラクタであることに注意。
 
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = liftM (Number . read) $ many1 digit
 ```
@@ -392,7 +393,7 @@ many1 digit
 
 かなり複雑であるが `getLine` と比較してみよう
 
-```
+```haskell
 *Parser> :t getLine
 getLine :: IO String
 ```
@@ -400,10 +401,10 @@ getLine :: IO String
 
 > モナドは「私たちはある決まったやり方でいくらかの追加情報とともに値を持ち回り組合せますが、殆どの関数はそれについて気にしなくていいですよ」と言っています。
 
-IO モナド (今回は `getLine`) についての「気にしなくてよいいくらかの追加情報」というものは明らかに IO という部分で、「値」というものは `String` である。 `many1 digit` における 「気にしなくて良いいくらかの追加情報」というのは `Text.Parsec.Prim.ParsecT s u m` という部分であり、「値」というのは `[Char]` である。 <!-- TODO: Text.Parsec.Prim.ParsecT s u m について --> なんともスッキリしないと思われるが、実際のところ IO というものについても私達はなんとなくわかった気になっているだけである (`getLine` を使ったときに具体的にどのようにして PC が入力を受けとって Haskell がそれをプログラム内で処理できる形にしているかを説明できる人は殆どいないだろう。もちろんそれを知ることは様々なことに役立つので、詳細を知ることの必要性を否定するわけではない)。これで、少なくとも `many1 digit` というものが結果としてあるモナドに包まれた `[Char]` を返す関数であることはとにかくわかったわけである。
+IO モナド (今回は `getLine`) についての「気にしなくてよいいくらかの追加情報」というものは明らかに IO という部分で、「値」というものは `String` である。 `many1 digit` における 「気にしなくて良いいくらかの追加情報」というのは `Text.Parsec.Prim.ParsecT s u m` という部分であり、「値」というのは `[Char]` である。 <!-- TODO: Text.Parsec.Prim.ParsecT s u m について --> なんともスッキリしないと思われるが、実際のところ IO というものについても私達はなんとなくわかった気になっているだけである (`getLine` を使ったときに具体的にどのようにして PC が入力を受けとって Haskell がそれをプログラム内で処理できる形にしているかを説明できる人は殆どいないだろう。もちろんそれを知ることは様々なことに役立つので、詳細を知ることの必要性を否定するわけではない)。これで、少なくとも `many1 digit` というものが結果としてあるモナドに包まれた `[Char]` を返す関数であることはとにかくわかったわけである。  
 　プログラムに戻ろう。
 
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = liftM (Number . read) $ many1 digit
 ```
@@ -417,7 +418,7 @@ parseNumber = liftM (Number . read) $ many1 digit
 
 これは `(a -> b)` という関数と型 `a` の値をを受けとり、その値に関数を適用して型 `b` を返すものであった。つまり `parseNumber` における `(a -> b)` の関数というのは `liftM (Number . read)` という部分であり、型 `a` の値というのが `many1 digit` の返す値であるといのがわかる。 ((Haskell のプログラムが何をしているのかわからない、という状態は、そもそもそれぞれの型が何であるかを理解していない場合が殆どである (と思う)。)) では `liftM (Number . read)` とは何だろうか。 `Number` は `Integer` を受けとって `LispVal` 型にするコンストラクタであり、 `read` は `String` を値に変換してくれるものである。では `liftM` とは何か。ここで理解しやすいようにこの後の練習問題に含まれるのだが、`parseNumber` を全く同じふるまいをする `do` を用いた関数に書き変えてみる。
 
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 -- parseNumber = liftM (Number . read) $ many1 digit
 parseNumber = do
@@ -447,7 +448,7 @@ liftM :: Monad m => (a -> b) -> m a -> m b
 
 これが示すことは、`liftM` は `(a -> b)` である関数を受けとり、モナドに包まれた型 `a` の値を受けとり、そのモナドに包まれた型 `a` の値に関数を適用して、モナドで包みなおして `m b` という型を持つ値として返すということをする。モナドがからんだ関数適用である。実際前のプログラムは中置記法を使うことにより `($)` と全く同じように書くことができる。((正し結合力の関係で `(Number . read)` の括弧を外すことはできないのでこのように書くことは Haskell 的では無いだろう。`($)` が括弧をはずすことができるのは `($)` の結合力が Haskell の関数 (オペレーターの中で最も低いことによる))
 
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 -- parseNumber = liftM (Number . read) $ many1 digit
 parseNumber = (Number . read) `liftM` many1 digit
@@ -456,7 +457,7 @@ parseNumber = (Number . read) `liftM` many1 digit
 > これはモナドの値を取り扱うさらにもう一つのやり方を示しています。
 というのは、まさにこのモナドを取り扱うことができる高階関数 (今回は `liftM`) によって、「追加情報」を気にせずにプログラミングができる手段を提供しています。別なやりかたと言うのは、`do` 記法や `(>>=)` を使ったやりかたと並べているということである。
 
-```haskell:Parser.hs
+```haskell
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
     Left err -> "No match: " ++ show err
@@ -465,7 +466,7 @@ readExpr input = case parse parseExpr "lisp" input of
 
 readExpr をこのように修正し、
 
-```
+```haskell
 main :: IO ()
 main = do
   args <- getArgs
@@ -495,7 +496,7 @@ collect2: error: ld returned 1 exit status
 
 のようになるので .cabal を確認するようにする。
 
-```cabal
+```haskell
 library
   hs-source-dirs:      src
   exposed-modules:     Parser
@@ -507,7 +508,7 @@ library
 
 実行してみよう
 
-```sh
+```haskell
 $ stack build
 $ stack exec scheme48-exe "\"this is a string\""
 Found value
@@ -529,7 +530,7 @@ expecting letter, "\"" or digit
 #### 練習問題 2-1
 
 - do 記法
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = do
   x <- many1 digit
@@ -538,7 +539,7 @@ parseNumber = do
 
 - bind 記法
 
-```haskell:Parser.hs
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = many1 digit >>= \x -> return . Number . read $ x
 ```
@@ -574,7 +575,7 @@ parseString = do char '"'
 
 #### 練習問題 2-3
 
-```
+```haskell
 parseEscape :: Parser Char
 parseEscape = do
   char '\\'
@@ -595,14 +596,14 @@ fuga	hoge\
 ```
 これと全く同じ動作をする文字列を試すと
 
-```
+```haskell
 *Parser> parse parseString "lisp" "\"\\\\hoge\\tfuga\\nfuga\\thoge\\\\\""
 Right (String "\\hoge\tfuga\nfuga\thoge\\")
 ```
 
 パースに成功しているが、正しく動作しているのかわかりずらいので確認するために `parse` の結果を受け取って表示する `printString` を実装しておく。`parse` の型は
 
-```
+```haskell
 *Parser> :t parse parseString "lisp" "\"ho\\\"\n\r\t\\\\ge\""
 parse parseString "lisp" "\"ho\\\"\n\r\t\\\\ge\""
   :: Either ParseError LispVal
@@ -610,7 +611,7 @@ parse parseString "lisp" "\"ho\\\"\n\r\t\\\\ge\""
 
 であるので
 
-```haskell:printString
+```haskell
 printString :: Either ParseError LispVal -> IO ()
 printString (Right (String s)) = putStrLn s
 printString _ = putStrLn "Print error"
@@ -618,7 +619,7 @@ printString _ = putStrLn "Print error"
 
 これで確認してみると
 
-```haskell:printString
+```haskell
 *Parser> printString $ parse parseString "lisp" "\"\\\\hoge\\tfuga\\nfuga\\thoge\\\\\""
 \hoge	fuga
 fuga	hoge\
@@ -644,7 +645,7 @@ gosh> #d10
 
 このように `#b`・`#o`・`#x`・`#d`の後に来た数字をそれぞれ2進数・8 進数・16 進数・10 進数として値を読み込みこんで10進数表示するように、`parseNumber` を変更していく。まず Haskell の `Numeric` module には `redOct` と `readHex` はあるが2進数用の関数は無いので同じく `Numeric` module にある `readInt` という関数を用いて実装する必要がある。まず `readHex` のふるまいを確認しておくと (:m で ghci にモジュールをインポートできる)
 
-```
+```haskell
 *Parser Numeric> :t readHex
 readHex :: (Num a, Eq a) => ReadS a
 *Parser> :m Numeric
@@ -655,21 +656,21 @@ Parser Numeric> readHex "abhogeab"
 今回のパーサーでは `#b` などの後に続く数字だけを `many1 digit` で取りだすので、タプルの第2要素の変換でき
 なかった文字列を気にする必要はない。`readInt` を使用した `readBin` は以下のようになる。 `digitToInt` は module `Data.Char` で定義されている。
 
-```
+```haskell
 readBin :: (Num a, Eq a) => ReadS a
 readBin = readInt 2 (\c -> elem c "01") digitToInt
 ```
 
 `readInt` の第一引数は基数を、第二引数は文字がその基数に対してふさわしい値であるかどうかの述語 (今回の2進数では `0` か `1` のどちらかを表わすために `elme c "01"` としている)。 最後はその述語を満たした文字を対応する `Int` に変換する関数を取る。
 
-```
+```haskell
 *Parser> readBin "1111"
 [(15,"")]
 ```
 
 ここで私は `parseNumber` を以下のように実装した
 
-```haskell:parseNumber
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = do
   top <- char '#' <|> digit
@@ -687,14 +688,14 @@ parseNumber = do
 
 そして `parseExpr` の順番を以下のように交換することにより実装できると考えたが、
 
-```haskell:parseExpr
+```haskell
 parseExpr :: Parser LispVal
 parseExpr = parseNumber
             <|> parseAtom
             <|> parseString
 ```
 
-```
+```haskell
 *Parser> parse parseExpr "lisp" "#b110hoge"
 Right (Number 6)
 *Parser> parse parseExpr "lisp" "#b110"
@@ -709,7 +710,7 @@ Right (Number 272)
 
 値自体のパースは上手くいっている((実際には"#xabdf"のような16進数を受けつけないバグがある。後ほど出てくる実装ではそれに対応している)。しかし
 
-```
+```haskell
 *Parser> parse parseExpr "lisp" "#t"
 Left "lisp" (line 1, column 2):
 unexpected "t"
@@ -717,7 +718,7 @@ unexpected "t"
 
 このように `parseAtom` で定義されている `#t` がうまく扱われなくなる。これは通常パーサーが戻れるのは一文字のみであり、`parseNumber` の `top <- char '#' <|> digit` でどちらかにマッチした時点でその後の `parseNumber` が失敗しても、私が順番を変更した `parseExpr` における、`parseNumber` の次の `parseAtom` に行くということはしてくれないからのようだ。これではどう実現すればいいのかわからなくなったが、 http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:try にある `try` と `string` を用いれば実現できそうだとういうことを見つけることができた((諦めかけていた))。以下の `parseNumber` がそれを使ったものである ((Haskell で `if` を使うことはあまり無いらしいがこれが一番綺麗だと思ったので使った))。
 
-```haskell:parseNumber
+```haskell
 parseNumber :: Parser LispVal
 parseNumber = do
   s <- many1 digit
@@ -733,7 +734,7 @@ parseNumber = do
   where toNumber = return . Number . fst . head
 ```
 
-```
+```haskell
 *Parser> parse parseExpr "lisp" "#t"
 Right (Bool True)
 *Parser> parse parseExpr "lisp" "#f"
