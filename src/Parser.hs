@@ -61,11 +61,23 @@ parseNumber = do
            "#x" -> many1 (oneOf "0123456789abcdef") >>= toNumber . readHex
   where toNumber = return . Number . fst . head
 
+
+
+parseChar :: Parser LispVal
+parseChar = do
+  try (string "#\\")
+  c <- try (string "newline") <|> try (string "space")
+       <|> do { x <- anyChar; return (x:[])}
+  return . Character $ case c of
+                         "newline" -> '\n'
+                         "space"   -> ' '
+                         _         -> head c
+
 parseExpr :: Parser LispVal
 parseExpr = parseNumber
+            <|> parseChar
             <|> parseAtom
             <|> parseString
-
 
 printString :: Either ParseError LispVal -> IO ()
 printString (Right (String s)) = putStrLn s
