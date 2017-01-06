@@ -1,14 +1,14 @@
-# 最初の一歩
-## 目的
+# 目的
 私は今回、 stack を用いて Haskell で scheme を実装するチュートリアルである scheme 48 を読みました。この
 記事の第一目的は、自分が行った思考などを記録することが目的ですが、その副産物として
 
 - stack を実際に利用しているときに遭遇する問題と解決方法
 - Haskell の実践的なチュートリアルとして scheme 48 を読み始めたが理解ができなかった人向けの補足
 
-が含まれています。二番目の補足に関しては、scheme 48 を読んで、私が理解するために使ったがこの記事には明示されていない知識、または読んでいて理解が容易ではないと感じた部分などを補足しています。またこの元記事は license が Creative Commons (CC) のため全文がこの記事に含まれています。よってこの記事だけで全てのチュートリアルを読み進めることができます。またこの記事は github で全文が公開されているため修正案・指摘などを Pull Request することができます (もちろん Mail や Twitter・issue での報告も受け賜わります)。
+が含まれています。二番目の補足に関しては、scheme 48 を読んで、私が理解するために使ったがこの記事には明示されていない知識、または読んでいて理解が容易ではないと感じた部分などを補足しています。時には結果として無駄になった過程なども、理解の助けになる可能性があることを考え残してある場合があります。(練習問題 2-4 など)  
+　この元記事は license が Creative Commons (CC) のため全文がこの記事に含まれています。( TODO ) よってこの記事だけで全てのチュートリアルを読み進めることができます。またこの記事は github で全文が公開されているため修正案・指摘などを Pull Request することができます (もちろん Mail や Twitter・issue での報告も受け賜わります)。
 
-## 事前知識
+# 事前知識
 
 チュートリアルであると言っており
 
@@ -17,8 +17,7 @@
 >   2. プログラミング言語を何も知らないけれども、一定の背景知識を持っていてコンピュータに詳しい人
 
 というようにしていますが、残念ながらこの文章は本当に Haskell について何も知らない人へのチュートリアルとしては不十分です。『すごい Haskell たのしく学ぼう』のできれば 8 章あたりまで、または『プログラミングHaskell』の 7 章まで読んでいると Haskell の基本としての準備は整うかと思います。完全に理解をしている必要はなく、このチュートリアルを進める中で、 Haskell とセットで語られることが多いモナドなどと同時に理解をすすめることができるでしょう。実際に Haskell の環境を作った上で一度目を通して簡単に自分の手で動かしていれば、このチュートリアルを読む準備は整うと考えられます。もちろん、上述の書籍には可能な限り目を通しておく方がこの記事の理解は容易になる。また、言語を実装するにあたっての基礎的な知識を要求している。こと辺りについては適宜補足していく。
-
-## 下準備
+# 下準備
 
 前記事の stack で作成したプロジェクトを使います。始めは `app/` 内の `Main.hs` を変更していきます。
 
@@ -37,7 +36,7 @@ $ stack exec scheme48-exe Nobunaga
 Hello, Nobunaga
 ```
 
-## 内容
+# 最初の一歩
 
 > モナドは「私たちはある決まったやり方でいくらかの追加情報とともに値を持ち回り組合せますが、殆どの関数はそれについて気にしなくていいですよ」と言っています。
 
@@ -81,6 +80,7 @@ main = getLine >> getArgs >>= \args -> putStrLn ("Hello, " ++ args !! 0)
 
 自分は競技プログラミングで Haskell を使っていたので、 IO モナド以外にほとんど触ったことがなかったのでこれを意識することは殆どありませんでした。逆に言えば IO モナドだけなんとなくわかっていれば、実際に CLI アプリなどの Haskell のコードは書けるとも言えます。
 
+## 練習問題
 ### 練習問題 1
 ```haskell
 module Main where
@@ -524,10 +524,10 @@ unexpected "("
 expecting letter, "\"" or digit
 ```
 
-### 練習問題 2
+## 練習問題 2
 練習問題は解答を見る前に必ず自分で考えること
 
-#### 練習問題 2-1
+### 練習問題 2-1
 
 - do 記法
 ```haskell
@@ -544,7 +544,7 @@ parseNumber :: Parser LispVal
 parseNumber = many1 digit >>= \x -> return . Number . read $ x
 ```
 
-#### 練習問題 2-2
+### 練習問題 2-2
 
 問題が少し分かりずらいが、現在のパーサーではエスケープが実装されていないので以下のように動作してしまう。
 
@@ -573,7 +573,7 @@ parseString = do char '"'
                  return $ String x
 ```
 
-#### 練習問題 2-3
+### 練習問題 2-3
 
 ```haskell
 parseEscape :: Parser Char
@@ -587,7 +587,7 @@ parseEscape = do
              _   -> x
 ```
 
-##### 確認
+確認してみる
 
 ```haskell
 putStrLn "\\hoge\tfuga\nfuga\thoge\\"
@@ -629,7 +629,7 @@ fuga	hoge\
 
 
 
-#### 練習問題 2-4
+### 練習問題 2-4
 この問題は難しい (4時間ほど要した)。これはまず scheme の方でどのように振る舞うかを確認しておく
 
 ```scheme
@@ -716,7 +716,8 @@ Left "lisp" (line 1, column 2):
 unexpected "t"
 ```
 
-このように `parseAtom` で定義されている `#t` がうまく扱われなくなる。これは通常パーサーが戻れるのは一文字のみであり、`parseNumber` の `top <- char '#' <|> digit` でどちらかにマッチした時点でその後の `parseNumber` が失敗しても、私が順番を変更した `parseExpr` における、`parseNumber` の次の `parseAtom` に行くということはしてくれないからのようだ。これではどう実現すればいいのかわからなくなったが、 http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:try にある `try` と `string` を用いれば実現できそうだとういうことを見つけることができた((諦めかけていた))。以下の `parseNumber` がそれを使ったものである ((Haskell で `if` を使うことはあまり無いらしいがこれが一番綺麗だと思ったので使った))。
+このように `parseAtom` で定義されている `#t` がうまく扱われなくなる。これは通常パーサーが戻れるのは一文字のみであり (正確には一字先読みというものであり、入ってくる文字列を消費せずに一文字だけ確認して次に来るものがどのようなものかを判断する)、`parseNumber` の `top <- char '#' <|> digit` でどちらかにマッチした時点でその後の `parseNumber` が失敗しても、私が順番を変更した `parseExpr` における、`parseNumber` の次の `parseAtom` に行くということはしてくれないからだ。これではどう実現すればいいのかわからなくなったが、 http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:try にある `try` と `string` を用いれば実現できそうだとういうことを見つけることができた ((諦めかけていた。これ以降 https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html や https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Char.html を参照して使える Parser を探す必要が出てくる。参照している場所は使用している `Text.ParserCombinators.Parsec` とは違うがこれらの module を import して、一部変更して使っているようだ。https://hackage.haskell.org/package/parsec-3.1.11/docs/src/Text.ParserCombinators.Parsec.Prim.html#try などを参考))。
+　以下の `parseNumber` がそれを使ったものである ((Haskell で `if` を使うことはあまり無いらしいがこれが一番綺麗だと思ったので使った))。
 
 ```haskell
 parseNumber :: Parser LispVal
@@ -751,4 +752,93 @@ Right (Number 3093)
 Right (Atom "#hoge")
 ```
 
-ここまでの段階でのプログラムは https://github.com/iyahoo/write-scheme-48/tree/e8d7b563c98839a9b3a593188d5272875e673c83 で見ることができる。※注意: これ以降、このようにして途中状態のソースのコミットを貼るようにするが、プログラム以外にも doc なども推敲・まとめ前の半端な状態なのでそちらを参照しないように。
+長くなったので、ここまでの段階でのプログラムは https://github.com/iyahoo/write-scheme-48/tree/53458af07357c82d92fd66098b8130dc8008e327 で見ることができる。※注意: これ以降、このようにして途中状態のソースのコミットを貼るようにするが、プログラム以外にも doc なども推敲・まとめ前であり、ほぼメモの段階の半端な状態なのでそちらを参照しないように。
+
+### 練習問題 2-5
+
+まず
+
+```Haskell
+parseChar :: Parser LispVal
+parseChar = do
+  try (string "#\\")
+  c <- try (string "newline") <|> try (string "space") <|> letter
+```
+
+ここまで書いて問題に気がつく。
+
+1. `string "newline"` や `string "space"` は返り値の型が `Text.Parsec.Prim.ParsecT s u m String` というモナド+ `String` の型をしており `letter` はモナド + `Char` なので型が合わない
+2. `#\` の後に `many letter` を置くわけにはいかない
+
+ここで、このように型が合わないという現象が起きた時点で、何か実装を疑うべきなのかもしれない。型が合わないということは、何かを間違えているのではないかと考えてしまうが、数文字読んで失敗したら一文字読むということがパーサーとしては、ひとまず `latter` の振舞いをしてかつリストにして返す Parser が無いかを探してみたが見つからないので無理矢理実装する `do` 記法を使い、マッチした `Char` をリストに入れることで、`string "newline"` などに型を合わせる。そして残りの部分を `case` を用いて実装する 
+
+```haskell
+parseChar :: Parser LispVal
+parseChar = do
+  try (string "#\\")
+  c <- try (string "newline") <|> try (string "space")
+       <|> do { x <- anyChar; return (x:[])}
+  return . Character $ case c of
+                         "newline" -> '\n'
+                         "space"   -> ' '
+                         _         -> head c
+```
+
+`do` 記法をワンライナーで書く場合はセミコロン `;` を利用する。 そして https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Char.html にある `anyChar` というものが目的の動作をすると思われるのでこれを利用した。`parser` は基本的にあるマッチした文字 (又は文字列) をモナドと共に返すので、`x <- anyChar; return (x:[])` の部分でマッチしたある文字をリストに入れることで1文字からなる文字列にし、他の `<|>` の項の型に合わせている。`do` 記法はあくまでモナドを用いていること以外は他の `式` と何も変わらないのでこのようにある式の途中に入れることが可能である。
+
+### 練習問題 2-6
+
+`LispVal` に `Float Double` を追加する。
+
+```haskell
+data LispVal = Atom String
+             | List [LispVal]
+             | DottedList [LispVal] LispVal
+             | Number Integer
+             | Float Double
+             | String String
+             | Bool Bool
+             | Character Char
+             deriving (Show)
+```
+
+まず簡単に思いつくのは以下のような単純な `parseFloat` というパーサーを定義することである。
+
+```Haskell
+parseFloat :: Parser LispVal
+parseFloat = do
+  b <- many1 digit
+  _ <- char '.'
+  x <- many1 digit
+  return . Float . read $ b ++ "." ++ x
+```
+
+文字列である少数部をどのように Lisp の値として認識させるかに少し困ったが、 Haskell の `read` 関数を利用してしまうことで簡単にできた。これを `parseExpr` に加えると (この時 `parseNumber` の後ろに加えてしまうと少数の点の前までで `Number` としてパースされてしまうのでその前に置く。)
+
+```haskell
+parseExpr :: Parser LispVal
+parseExpr = try parseFloat
+            <|> parseNumber
+            <|> parseChar
+            <|> parseAtom
+            <|> parseString
+```
+
+```haskell
+$ stack build
+...
+$ stack ghci
+...
+*Main Datatype Parser> :l "src/Parser.hs"
+...
+Ok, modules loaded: Parser, Datatype.
+*Parser> parse parseExpr "l" "39393"
+Right (Number 39393)
+*Parser> parse parseExpr "l" "39393.3939"
+Right (Float 39393.3939)
+```
+
+このように正しく動作する。しかしここまでで気になるのはこの `try` というものである。これは本来なら一字先読みしかできないパーサーに対して複数の文字を先読みすることを可能にする便利なものとして利用しているが、複数の文字を読んで、失敗した場合は戻るという処理をする以上、一字先読みよりも格段に取り回す情報が増えコストが増大するはずでありできるだけ避けたい？
+
+### 練習問題 2-7
+

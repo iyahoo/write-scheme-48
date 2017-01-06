@@ -55,13 +55,18 @@ parseNumber = do
   if isDigit . head $ s
     then return . Number . read $ s
     else case s of
-           "#b" -> many1 (oneOf "01") >>= toNumber . readBin
-           "#o" -> many1 (oneOf "01234567") >>= toNumber . readOct
-           "#d" -> many1 (oneOf "0123456789") >>= toNumber . readDec
+           "#b" -> many1 (oneOf "01")               >>= toNumber . readBin
+           "#o" -> many1 (oneOf "01234567")         >>= toNumber . readOct
+           "#d" -> many1 (oneOf "0123456789")       >>= toNumber . readDec
            "#x" -> many1 (oneOf "0123456789abcdef") >>= toNumber . readHex
   where toNumber = return . Number . fst . head
 
-
+parseFloat :: Parser LispVal
+parseFloat = do
+  b <- many1 digit
+  _ <- char '.'
+  x <- many1 digit
+  return . Float . read $ b ++ "." ++ x
 
 parseChar :: Parser LispVal
 parseChar = do
@@ -74,7 +79,8 @@ parseChar = do
                          _         -> head c
 
 parseExpr :: Parser LispVal
-parseExpr = parseNumber
+parseExpr = try parseFloat
+            <|> parseNumber
             <|> parseChar
             <|> parseAtom
             <|> parseString
