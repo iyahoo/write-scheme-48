@@ -6,6 +6,7 @@ data LispVal = Atom String
              | Number Integer
              | Float Double
              | Complex (Double,Double)
+             | Rational (Integer,Integer)
              | String String
              | Bool Bool
              | Character Char

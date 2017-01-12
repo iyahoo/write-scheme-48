@@ -526,8 +526,7 @@ expecting letter, "\"" or digit
 ```
 
 ## 練習問題 2
-練習問題は解答を見る前に必ず自分で考えること
-
+練習問題となっているが、ここでの学びは後々必須となるので教科書の続きとして扱ってもらってよいが、解答などは公式にないので間違いが含まれている可能性が他よりもより高い。
 ### 練習問題 2-1
 
 - do 記法
@@ -843,7 +842,7 @@ Right (Float 39393.3939)
 
 ### 練習問題 2-7
 
-Scheme では `3+2i` や `5-i`, `5.0+0.1i` という入力をすると複素数として扱われるようだ。 http://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-9.html#%_sec_6.2.5 更に `#b1011+i` なども正しく複素数として認識するので、すでに実装した `parseNumber` や `parseFloat` とほとんど同じ部分であるのでパーサーが文字列を生成するまでの部分を別な関数として取り出すことで、複素数用のパーサーでも使えるようにする。まずは以前実装したパーサーを変更していく。変更前をコメントとして添付しておく。まずは `parseNumber` を、Number としてパースした部分を文字列として返すように書き変える。
+Scheme の値 number には complex (複素数), real (実数), rational (有理数), integer (整数)が存在する。ここまでで実数と整数のパーサーは実装しているので残りを実装する。まず複素数。Scheme では `3+2i` や `5-i`, `5.0+0.1i` という入力をすると複素数として扱われるようだ。 http://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-9.html#%_sec_6.2.5 更に `#b1011+i` なども正しく複素数として認識するので、すでに実装した `parseNumber` や `parseFloat` とほとんど同じ部分であるのでパーサーが文字列を生成するまでの部分を別な関数として取り出すことで、複素数用のパーサーでも使えるようにする。まずは以前実装したパーサーを変更していく。変更前をコメントとして添付しておく。まずは `parseNumber` を、Number としてパースした部分を文字列として返すように書き変える。
 
 ```haskell
 -- parseNumber :: Parser LispVal
@@ -919,12 +918,14 @@ parseComplex = do
   s <- char '+' <|> char '-'
   i <- try (many parseFloat') <|> try (many parseNumber')
   _ <- char 'i'
-  let sign = if s == '+' then ' ' else '-'
-  let im = if i == [] then ["1"] else i
-  return . Complex $ (read r, read $ [sign] ++ head im)
+  return . Complex $ (read r, readImaginary s i)
+  where readImaginary '+' [] = 1.0
+        readImaginary '-' [] = (-1.0)
+        readImaginary '+' i  = read . head $ i
+        readImaginary '-' i  = (*) (-1) . read . head $ i
 ```
 
-複素数は、1文字以上の数値 (ここが省略されることはない) が来た後に `+` か `-` が来て、その後に 0 文字以上の数字が来て (many を付けることで失敗した場合は `[]` を得るようにしている) 最後に必ず `i` が来ることになる。`s` が `+` の場合はそのまま `read` に渡せないので `sign` をスペースとし、また符号の後の値が省略されて `i` が来た場合は虚数部の値を `1` として `im` に入れて `sign` と連結して `read` に渡している。これを `parseExpr` に追加する。
+複素数は、1文字以上の数値 (ここが省略されることはない) が来た後に `+` か `-` が来て、その後に 0 文字以上の数字が来て (`many` を付けることで `[]` の場合は虚数部の値が省略されていることを表現している) 最後に必ず `i` が来ることになる。また `where` 部で宣言している `readImaginary` 関数で `s` と `i` による値を決めている。これを `parseExpr` に追加する。
 
 ```haskell
 parseExpr :: Parser LispVal
@@ -936,7 +937,7 @@ parseExpr = try parseComplex
             <|> parseString
 ```
 
-また、この時、複素数の実数部をパースした時点で値として認識してしまうので `parseFloat` や `parseNumber` より先に置く必要があることに注意すること。実際に試してみると
+またこの時、複素数の実数部をパースした時点で値として認識してしまうので `parseFloat` や `parseNumber` より先に置く必要があることに注意すること。実際に試してみると
 
 ```haskell
 $ stack ghci
@@ -962,5 +963,92 @@ Right (Complex (55.0,301.0))
 ```
 
 という風に虚数部で値をいくつか並べてもパースが成功してしまう。`head` を取っているので虚数部の先頭が値として認識されている。これを解決するには、`try` の様に何かパーサーを受けとって、成功すれば list に入ったそれを、成功しなかった場合は `[]` を返すようなものが必要だろうか。今回これの実装は行っていない。)
+
+次に有理数を実装する。scheme では以下のようにふるまう。
+
+```scheme
+gosh> 2/3
+2/3
+gosh> 4/6
+2/3
+gosh> 3/3
+1
+```
+
+という様に、分数表示をそのまま分数として扱うためのものである。通分を行い、整数に直せる場合は直す必要がある。また
+
+```scheme
+gosh> #b1101/3
+*** READ-ERROR: Read error at "(standard input)":line 15: bad numeric format: "#b1101/3"
+gosh> 3/
+*** ERROR: unbound variable: |3/|
+gosh> /3
+*** ERROR: unbound variable: /3
+```
+
+のように値の省略できず、10進数表記以外はうけつける必要はない。まずは `LispVal` に `Rational` を追加する。複素数の時と似たように、整数型のタプルを用いる
+
+```haskell
+data LispVal = Atom String
+             | List [LispVal]
+             | DottedList [LispVal] LispVal
+             | Number Integer
+             | Float Double
+             | Complex (Double,Double)
+             | Rational (Integer,Integer)
+             | String String
+             | Bool Bool
+             | Character Char
+             deriving (Show)
+```
+
+通分は、分子と分母の最大公約数で両方を割って上げればよい。整数になるのは分子を分母で割ったときの余りが 0 の場合であるので、パーサーの実装は以下のようになる。
+
+```haskell
+parseRational :: Parser LispVal
+parseRational = do
+  n <- many1 digit
+  _ <- char '/'
+  d <- many1 digit
+  let nume = read n; deno = read d -- numerator (分子), denominator (分母)
+  let gcdn = gcd nume deno
+  let nume' = div nume gcdn; deno' = div deno gcdn -- 通分
+  let remn = rem nume' deno'
+  toLispVal nume' deno' remn
+  where toLispVal n d 0 = return . Number $ (div n d)
+        toLispVal n d _ = return . Rational $ (n, d)
+```
+
+値の使い回しが多いので `let` を使っている。((TODO: もっときれいに書けないか)) `where` でパターンマッチを利用して分岐の処理をしている。 Haskell ではこのようにパターンマッチを利用して分岐を書くことができ、また `if` よりもプログラムを読んだ時に直感的にわかりやすいということから、 `if` が使われることは少ないようだ。最後に `parseExpr` に追加して実行するのだが、 `parseExpr` の項数が多くなってきたのでこれらの値に関するパーサーはすべて `parseNum` としてまとめることにする。
+
+```haskell
+parseNum :: Parser LispVal
+parseNum = try parseRational <|> try parseComplex <|> try parseFloat <|> parseNumber
+
+parseExpr :: Parser LispVal
+parseExpr = parseNum
+            <|> parseChar
+            <|> parseAtom
+            <|> parseString
+```
+
+試してみよう。
+
+```haskell
+$ stack ghci
+...
+*Main Datatype Parser> :l "src/Parser.hs"
+...
+Ok, modules loaded: Parser, Datatype.
+*Parser> parse parseExpr "lisp" "2/3"
+Right (Rational (2,3))
+*Parser> parse parseExpr "lisp" "6/9"
+Right (Rational (2,3))
+*Parser> parse parseExpr "lisp" "10/2"
+Right (Number 5)
+*Parser> parse parseExpr "lisp" "10/1"
+Right (Number 10)
+*Parser>
+```
 
 

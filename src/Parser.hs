@@ -74,7 +74,7 @@ parseFloat' = do
   return $ b ++ [dot] ++ x
 
 parseFloat :: Parser LispVal
-parseFloat =  parseFloat' >>= return . Float . read 
+parseFloat =  parseFloat' >>= return . Float . read
 
 parseComplex :: Parser LispVal
 parseComplex = do
@@ -82,9 +82,24 @@ parseComplex = do
   s <- char '+' <|> char '-'
   i <- try (many parseFloat') <|> try (many parseNumber')
   _ <- char 'i'
-  let sign = if s == '+' then ' ' else '-'
-  let im = if i == [] then ["1"] else i
-  return . Complex $ (read r, read $ [sign] ++ head im)
+  return . Complex $ (read r, readImaginary s i)
+  where readImaginary '+' [] = 1.0
+        readImaginary '-' [] = (-1.0)
+        readImaginary '+' i  = read . head $ i
+        readImaginary '-' i  = (*) (-1) . read . head $ i
+
+parseRational :: Parser LispVal
+parseRational = do
+  n <- many1 digit
+  _ <- char '/'
+  d <- many1 digit
+  let nume = read n; deno = read d -- numerator (分子), denominator (分母)
+  let gcdn = gcd nume deno
+  let nume' = div nume gcdn; deno' = div deno gcdn -- 通分
+  let remn = rem nume' deno'
+  return $ toLispVal nume' deno' remn
+  where toLispVal n d 0 = Number $ (div n d)
+        toLispVal n d _ = Rational $ (n, d)
 
 parseChar :: Parser LispVal
 parseChar = do
@@ -96,10 +111,11 @@ parseChar = do
                          "space"   -> ' '
                          _         -> head c
 
+parseNum :: Parser LispVal
+parseNum = try parseRational <|> try parseComplex <|> try parseFloat <|> parseNumber
+
 parseExpr :: Parser LispVal
-parseExpr = try parseComplex
-            <|> try parseFloat
-            <|> parseNumber
+parseExpr = parseNum
             <|> parseChar
             <|> parseAtom
             <|> parseString
