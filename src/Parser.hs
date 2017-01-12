@@ -47,26 +47,44 @@ parseAtom = do
 readBin :: (Num a, Eq a) => ReadS a
 readBin = readInt 2 (\c -> elem c "01") digitToInt
 
-parseNumber :: Parser LispVal
-parseNumber = do
+parseNumber' :: Parser String
+parseNumber' = do
   s <- many1 digit
        <|> try (string "#b") <|> try (string "#o")
        <|> try (string "#d") <|> try (string "#x")
   if isDigit . head $ s
-    then return . Number . read $ s
+    then return s
     else case s of
-           "#b" -> many1 (oneOf "01")               >>= toNumber . readBin
-           "#o" -> many1 (oneOf "01234567")         >>= toNumber . readOct
-           "#d" -> many1 (oneOf "0123456789")       >>= toNumber . readDec
-           "#x" -> many1 (oneOf "0123456789abcdef") >>= toNumber . readHex
-  where toNumber = return . Number . fst . head
+           "#b" -> many1 (oneOf "01")               >>= toString . readBin
+           "#o" -> many1 (oneOf "01234567")         >>= toString . readOct
+           "#d" -> many1 (oneOf "0123456789")       >>= toString . readDec
+           "#x" -> many1 (oneOf "0123456789abcdef") >>= toString . readHex
+  where toString = return . show . fst . head
+
+parseNumber :: Parser LispVal
+parseNumber = do
+  x <- parseNumber'
+  return . Number . read $ x
+
+parseFloat' :: Parser String
+parseFloat' = do
+  b <- many1 digit
+  dot <- char '.'
+  x <- many1 digit
+  return $ b ++ [dot] ++ x
 
 parseFloat :: Parser LispVal
-parseFloat = do
-  b <- many1 digit
-  _ <- char '.'
-  x <- many1 digit
-  return . Float . read $ b ++ "." ++ x
+parseFloat =  parseFloat' >>= return . Float . read 
+
+parseComplex :: Parser LispVal
+parseComplex = do
+  r <- try parseFloat' <|> try parseNumber'
+  s <- char '+' <|> char '-'
+  i <- try (many parseFloat') <|> try (many parseNumber')
+  _ <- char 'i'
+  let sign = if s == '+' then ' ' else '-'
+  let im = if i == [] then ["1"] else i
+  return . Complex $ (read r, read $ [sign] ++ head im)
 
 parseChar :: Parser LispVal
 parseChar = do
@@ -79,7 +97,8 @@ parseChar = do
                          _         -> head c
 
 parseExpr :: Parser LispVal
-parseExpr = try parseFloat
+parseExpr = try parseComplex
+            <|> try parseFloat
             <|> parseNumber
             <|> parseChar
             <|> parseAtom

@@ -5,6 +5,7 @@ data LispVal = Atom String
              | DottedList [LispVal] LispVal
              | Number Integer
              | Float Double
+             | Complex (Double,Double)
              | String String
              | Bool Bool
              | Character Char

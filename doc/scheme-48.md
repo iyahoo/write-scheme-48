@@ -177,7 +177,7 @@ symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 ```
 
-これは〈symbol というものは "!#$%&|*+-/:<=>?@^\_~" のなかのひとつである〉という定義と読める。この段階では `Parser` という型を持つ関数が何をするのかイメージしずらいかもしれないが、 Bool 値を返す関数である述語に近いだろう。例えば `symbol` であれば、この条件 `oneOf "..."` でが成立すれば、これは真でありそれにマッチしたものを返す、というような。
+これは〈symbol というものは "!#$%&|*+-/:<=>?@^\_~" のなかのひとつである〉という定義と読める。この段階では `Parser` という型を持つ関数が何をするのかイメージしずらいかもしれないが、 Bool 値を返す関数である述語に近いだろう。例えば `symbol` であれば、`oneOf "..."` が成立すれば、これは真でありそれにマッチしたものを返す、というような。
 
 ```haskell
 readExpr :: String -> String
@@ -195,10 +195,11 @@ case exp of
   vn -> en
 ```
 
-これが Haskell の `case` 式の一般形であるので、今回の場合一般形の `exp` とはすなわち `parse symbol "lisp" input` である。 `parse` というのはここでは定義していないので Parsec の中で定義されている、引数を3つ取る関数だろうということがわかる。実際にこのように定義されている http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:parse
-返り値は `Either ParseError a` という型であり、
+これが Haskell の `case` 式の一般形であるので、今回の場合一般形の `exp` とはすなわち `parse symbol "lisp" input` である。 `parse` というのはここでは定義していないので Parsec の中で定義されている、引数を3つ取る関数だろうということがわかる。実際にこのように定義されている http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:parse 返り値は `Either ParseError a` という型であり、
+
 > Haskellの一般的な慣習に従って、ParsecはEitherデータ型を返します。Left構築子でエラーを、Rightで通常の値を表します。
-の通り Either というのは Haskell では失敗か成功を表すときに用いる型である。 Right というモナド(?)で包まれている方が成功を表し、Left で包まれているのは失敗を表す (型によって分岐させてエラーの場合の処理を書ける)。
+
+との通り `Either` というのは Haskell では失敗か成功を表すときに用いる型である。 `Right` というモナド(?)で包まれている方が成功を表し、`Left` で包まれているのは失敗を表す (型によって分岐させてエラーの場合の処理を書ける)。
 
 ```haskell
 module Main where
@@ -254,7 +255,7 @@ unexpected "a"
 
 > 現段階では、パーサは与えられた文字列が認識できるか否かを表示するだけで、特には何もしません。普通、パーサには与えられた入力を扱いやすいデータ構造に変換して欲しいものです。
 
-インタプリタとかを実装したことがないとよくわからない気がするが、パーサで文字列を読む → 読んだものをデータに変換する (例えば、"3" は Int 3 に、関数は関数を表すデータに) → 読み込んだデータに応じてその先の操作を決める (関数を読んだら、それを適応する値を探す、など)。
+インタプリタとかを実装したことがないとよくわからない気がするが、パーサで文字列を読む → 読んだものをデータに変換する (例えば、"3" は Int 3 に、関数は関数を表すデータに) → 読み込んだデータに応じてその先の操作を決める (関数を読んだら、それを適応する値を探す、など)。((また構文解析という処理を行う前に、通常は字句解析というフェーズが入るが、 Lisp の場合は最初から Tree 構造をしているので、字句解析を行うことが構文解析を行うことになる？))
 
 またファイルを分けておきましょう。<!-- 型 はいろいろな場所から参照したくなる場面が多い気がする --> stack を使ってるとファイルを分けても .cabal などを編集する必要が無いので楽です。
 
@@ -630,7 +631,7 @@ fuga	hoge\
 
 
 ### 練習問題 2-4
-この問題は難しい (4時間ほど要した)。これはまず scheme の方でどのように振る舞うかを確認しておく
+この問題は難しい (4時間ほど要した)。これはまず scheme の方でどのように振る舞うかを確認する
 
 ```scheme
 gosh> #b1101
@@ -646,15 +647,15 @@ gosh> #d10
 このように `#b`・`#o`・`#x`・`#d`の後に来た数字をそれぞれ2進数・8 進数・16 進数・10 進数として値を読み込みこんで10進数表示するように、`parseNumber` を変更していく。まず Haskell の `Numeric` module には `redOct` と `readHex` はあるが2進数用の関数は無いので同じく `Numeric` module にある `readInt` という関数を用いて実装する必要がある。まず `readHex` のふるまいを確認しておくと (:m で ghci にモジュールをインポートできる)
 
 ```haskell
+*Parser> :m Numeric
 *Parser Numeric> :t readHex
 readHex :: (Num a, Eq a) => ReadS a
-*Parser> :m Numeric
 Parser Numeric> readHex "abhogeab"
 [(171,"hogeab")]
 ```
 
 今回のパーサーでは `#b` などの後に続く数字だけを `many1 digit` で取りだすので、タプルの第2要素の変換でき
-なかった文字列を気にする必要はない。`readInt` を使用した `readBin` は以下のようになる。 `digitToInt` は module `Data.Char` で定義されている。
+なかった文字列を気にする必要はない。(パーサー部分でタプルの第2要素が空であることを保証する) `readInt` を使用した `readBin` は以下のようになる。 `digitToInt` は module `Data.Char` で定義されている。
 
 ```haskell
 readBin :: (Num a, Eq a) => ReadS a
@@ -716,7 +717,7 @@ Left "lisp" (line 1, column 2):
 unexpected "t"
 ```
 
-このように `parseAtom` で定義されている `#t` がうまく扱われなくなる。これは通常パーサーが戻れるのは一文字のみであり (正確には一字先読みというものであり、入ってくる文字列を消費せずに一文字だけ確認して次に来るものがどのようなものかを判断する)、`parseNumber` の `top <- char '#' <|> digit` でどちらかにマッチした時点でその後の `parseNumber` が失敗しても、私が順番を変更した `parseExpr` における、`parseNumber` の次の `parseAtom` に行くということはしてくれないからだ。これではどう実現すればいいのかわからなくなったが、 http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:try にある `try` と `string` を用いれば実現できそうだとういうことを見つけることができた ((諦めかけていた。これ以降 https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html や https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Char.html を参照して使える Parser を探す必要が出てくる。参照している場所は使用している `Text.ParserCombinators.Parsec` とは違うがこれらの module を import して、一部変更して使っているようだ。https://hackage.haskell.org/package/parsec-3.1.11/docs/src/Text.ParserCombinators.Parsec.Prim.html#try などを参考))。
+このように `parseAtom` で定義されている `#t` がうまく扱われなくなる。これは通常パーサーが戻れるのは一文字のみであり (正確には一字先読みというものであり、入ってくる文字列を消費せずに一文字だけ確認して次に来るものがどのようなものかを判断する)、`parseNumber` の `top <- char '#' <|> digit` でどちらかにマッチした時点でその後の `parseNumber` が失敗しても、私が順番を変更した `parseExpr` における、`parseNumber` の次の `parseAtom` に行くということはしてくれないからだ。これではどう実現すればいいのかわからなくなったが、 http://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html#v:try にある `try` と `string` を用いれば実現できそうだとういうことを見つけることができた ((諦めかけていた。これ以降 https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Prim.html や https://hackage.haskell.org/package/parsec-3.1.11/docs/Text-Parsec-Char.html を参照して使える Parser を探す必要が出てくる。参照している場所は使用している `Text.ParserCombinators.Parsec` とは違うがこれらの module を import して、一部変更して使っているようだ。https://hackage.haskell.org/package/parsec-3.1.11/docs/src/Text.ParserCombinators.Parsec.Prim.html#try などを参考))。つまり `try` というのは、`try` に渡したパーサーが失敗してもそれが消費した分の文字列を復元してくれるパーサーを生成する。
 　以下の `parseNumber` がそれを使ったものである ((Haskell で `if` を使うことはあまり無いらしいがこれが一番綺麗だと思ったので使った))。
 
 ```haskell
@@ -841,4 +842,125 @@ Right (Float 39393.3939)
 このように正しく動作する。しかしここまでで気になるのはこの `try` というものである。これは本来なら一字先読みしかできないパーサーに対して複数の文字を先読みすることを可能にする便利なものとして利用しているが、複数の文字を読んで、失敗した場合は戻るという処理をする以上、一字先読みよりも格段に取り回す情報が増えコストが増大するはずでありできるだけ避けたい？
 
 ### 練習問題 2-7
+
+Scheme では `3+2i` や `5-i`, `5.0+0.1i` という入力をすると複素数として扱われるようだ。 http://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-9.html#%_sec_6.2.5 更に `#b1011+i` なども正しく複素数として認識するので、すでに実装した `parseNumber` や `parseFloat` とほとんど同じ部分であるのでパーサーが文字列を生成するまでの部分を別な関数として取り出すことで、複素数用のパーサーでも使えるようにする。まずは以前実装したパーサーを変更していく。変更前をコメントとして添付しておく。まずは `parseNumber` を、Number としてパースした部分を文字列として返すように書き変える。
+
+```haskell
+-- parseNumber :: Parser LispVal
+-- parseNumber = do
+--   s <- many1 digit
+--        <|> try (string "#b") <|> try (string "#o")
+--        <|> try (string "#d") <|> try (string "#x")
+--   if isDigit . head $ s
+--     then return . Number . read $ s
+--     else case s of
+--            "#b" -> many1 (oneOf "01")               >>= toNumber . readBin
+--            "#o" -> many1 (oneOf "01234567")         >>= toNumber . readOct
+--            "#d" -> many1 (oneOf "0123456789")       >>= toNumber . readDec
+--            "#x" -> many1 (oneOf "0123456789abcdef") >>= toNumber . readHex
+--   where toNumber = return . Number . fst . head
+
+parseNumber' :: Parser String
+parseNumber' = do
+  s <- many1 digit
+       <|> try (string "#b") <|> try (string "#o")
+       <|> try (string "#d") <|> try (string "#x")
+  if isDigit . head $ s
+    then return s
+    else case s of
+           "#b" -> many1 (oneOf "01")               >>= toNumber . readBin
+           "#o" -> many1 (oneOf "01234567")         >>= toNumber . readOct
+           "#d" -> many1 (oneOf "0123456789")       >>= toNumber . readDec
+           "#x" -> many1 (oneOf "0123456789abcdef") >>= toNumber . readHex
+  where toNumber = return . show . fst . head
+
+parseNumber :: Parser LispVal
+parseNumber = do
+  x <- parseNumber'
+  return . Number . read $ x
+```
+
+`parseNumber` を `parseNumber'` と `parseNumber` に分割している。`parseNumber'` の型は `Parser String` になっているので注意すること。変更内容は `parseNumber` から `Number` を取り出し、また `readOct` などは `String` を `Int` に変換するので `toNumber` 関数で一旦 `String` に戻している。同様に `parseFloat` も変更する。
+
+```haskell
+parseFloat' = do
+  b <- many1 digit
+  dot <- char '.'
+  x <- many1 digit
+  return $ b ++ [dot] ++ x
+
+parseFloat :: Parser LispVal
+parseFloat =  parseFloat' >>= return . Float . read
+```
+
+次に `parseComplex` の実装に入るが、少し注意が必要なのは虚部は `i` だけでも良いということと、 Haskell の `read` 関数は "-39" は読み込むことができるが "+39" はできないので分岐が必要になる。他は練習問題 2-6 と似たように実装する。まず複素数を表す型だが
+
+> 例えば、有理数は分母と分子の組で、複素数は実数部と虚数部の組で表すことができます。
+
+という通り、タプルを使うことにする。実部虚部には実数も入ることができるので、タプルの各要素は `Double` とすることにして、整数で入力されたものも `Double` に変換することにした。この仕様は Scheme の実装の Gosh と同様であり、`read` 関数が暗にやってくれる。(コンストラクタ `Complex` は `(Double,Double)` という型の値を受けとるので、`read` した値を `Comply` に渡すようにしてあげれば Haskel が `read` の型を決めてくれる)
+
+```haskell
+data LispVal = Atom String
+             | List [LispVal]
+             | DottedList [LispVal] LispVal
+             | Number Integer
+             | Float Double
+             | Complex (Double,Double)
+             | String String
+             | Bool Bool
+             | Character Char
+             deriving (Show)
+```
+
+```haskell
+parseComplex :: Parser LispVal
+parseComplex = do
+  r <- try parseFloat' <|> try parseNumber'
+  s <- char '+' <|> char '-'
+  i <- try (many parseFloat') <|> try (many parseNumber')
+  _ <- char 'i'
+  let sign = if s == '+' then ' ' else '-'
+  let im = if i == [] then ["1"] else i
+  return . Complex $ (read r, read $ [sign] ++ head im)
+```
+
+複素数は、1文字以上の数値 (ここが省略されることはない) が来た後に `+` か `-` が来て、その後に 0 文字以上の数字が来て (many を付けることで失敗した場合は `[]` を得るようにしている) 最後に必ず `i` が来ることになる。`s` が `+` の場合はそのまま `read` に渡せないので `sign` をスペースとし、また符号の後の値が省略されて `i` が来た場合は虚数部の値を `1` として `im` に入れて `sign` と連結して `read` に渡している。これを `parseExpr` に追加する。
+
+```haskell
+parseExpr :: Parser LispVal
+parseExpr = try parseComplex
+            <|> try parseFloat
+            <|> parseNumber
+            <|> parseChar
+            <|> parseAtom
+            <|> parseString
+```
+
+また、この時、複素数の実数部をパースした時点で値として認識してしまうので `parseFloat` や `parseNumber` より先に置く必要があることに注意すること。実際に試してみると
+
+```haskell
+$ stack ghci
+...
+*Main Datatype Parser> :l "src/Parser.hs"
+...
+Ok, modules loaded: Parser, Datatype.
+*Parser> parse parseExpr "lisp" "333+3i"
+Right (Complex (333.0,3.0))
+*Parser> parse parseExpr "lisp" "333.00+3.00i"
+Right (Complex (333.0,3.0))
+*Parser> parse parseExpr "lisp" "333.00+i"
+Right (Complex (333.0,1.0))
+*Parser> parse parseExpr "lisp" "#b110111+i"
+Right (Complex (55.0,1.0))
+```
+
+(ここで既知のバグとして `many` を使っている関係で
+
+```haskell
+*Parser> parse parseExpr "lisp" "#b110111+301#b11101i"
+Right (Complex (55.0,301.0))
+```
+
+という風に虚数部で値をいくつか並べてもパースが成功してしまう。`head` を取っているので虚数部の先頭が値として認識されている。これを解決するには、`try` の様に何かパーサーを受けとって、成功すれば list に入ったそれを、成功しなかった場合は `[]` を返すようなものが必要だろうか。今回これの実装は行っていない。)
+
 
