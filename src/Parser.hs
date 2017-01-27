@@ -114,12 +114,34 @@ parseChar = do
 parseNum :: Parser LispVal
 parseNum = try parseRational <|> try parseComplex <|> try parseFloat <|> parseNumber
 
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
+
+parseDottedList :: Parser LispVal
+parseDottedList = do
+  head <- endBy parseExpr spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
+
+parseQuoted :: Parser LispVal
+parseQuoted = do
+  char '\''
+  x <- parseExpr
+  return $ List [Atom "quote", x]
+
 parseExpr :: Parser LispVal
 parseExpr = parseNum
             <|> parseChar
             <|> parseAtom
             <|> parseString
+            <|> parseQuoted
+            <|> do char '('
+                   x <- try parseList <|> parseDottedList
+                   char ')'
+                   return x
 
 printString :: Either ParseError LispVal -> IO ()
 printString (Right (String s)) = putStrLn s
 printString _ = putStrLn "Print error"
+
+
