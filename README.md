@@ -5,4 +5,7 @@
 練習問題については私が実装したものなので正しい解答かわかりません。練習問題に取り組む人は注意してください。  
 また、現在は文章などもあまり推敲せずとりあえず書いた状態なので読む人は注意してください。全体を読み終えた後でないと演習などの順番の推奨などにコメントできないので、終了後にあらためて全体を整えて正式に公開する予定です。  
 
+[TODO]  
+- Haddock を使ったテストの追加
+
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br />このテキスト・プログラムは <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">クリエイティブ・コモンズ 表示 - 継承 3.0 非移植 ライセンスの下に提供されています。</a>
