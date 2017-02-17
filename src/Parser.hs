@@ -1,10 +1,11 @@
 module Parser (readExpr) where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
-import Datatype (LispVal(..))
 import Control.Monad
 import Numeric
 import Data.Char
+import Datatype (LispVal(..))
+import Eval
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -14,8 +15,8 @@ spaces = skipMany1 space
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
-                   Left err  -> "No match: " ++ show err
-                   Right val -> "Found value"
+    Left err -> "No match: " ++ show err
+    Right val -> "Found " ++ show val
 
 parseEscape :: Parser Char
 parseEscape = do
@@ -139,14 +140,3 @@ parseExpr = parseNum
                    x <- try parseList <|> parseDottedList
                    char ')'
                    return x
-
-printString :: Either ParseError LispVal -> IO ()
-printString (Right (String s)) = putStrLn s
-printString _ = putStrLn "Print error"
-
-showVal :: LispVal -> String
-showVal (String contents) = "\"" ++ contents ++ "\""
-showVal (Atom name) = name
-showVal (Number contents) = show contents
-showVal (Bool True) = "#t"
-showVal (Bool False) = "#f"
