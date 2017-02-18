@@ -17,9 +17,30 @@
 
 というようにしているが、残念ながらこの文章は本当に Haskell について何も知らない人へのチュートリアルとしては難易度が高いと思う。『すごい Haskell たのしく学ぼう』のできれば 8 章あたりまで、または『プログラミングHaskell』の 7 章まで読んでいると Haskell の基本としての準備は整うかと思う (つまり基礎的な文法)。それらを完全に理解をしている必要は全くなく、このチュートリアルを進める中で Haskell とセットで語られることが多いモナドなどと同時に理解をすすめることができる。実際に Haskell の環境を作った上で一度目を通して簡単に自分の手で動かしていれば、このチュートリアルを読む準備は整うと考えられる。もちろん上述の書籍には可能な限り目を通しておく方がこの記事の理解は容易になる。この記事の中では、新しく出てきた概念については、基礎的な文法も含めて説明を加える。また、言語を実装するにあたって必要な知識についても適宜補足するが、この辺りは特に用語などが不正確である。
 
-# 下準備 (TODO: 以前書いておいた stack 導入記事を写す)
+# 下準備 (Stack の導入とプロジェクトの作成)
 
-前記事の stack で作成したプロジェクトを使います。始めは `app/` 内の `Main.hs` を変更していく。
+```shell
+curl -sSL https://get.haskellstack.org/ | sh
+```
+```
+$ stack setup
+$ stack new scheme48
+```
+かなり時間がかかる。終了後、`scheme48.cabal` というファイルを変更する。ビルド時のエラー文を一旦消すためにテスト部分をコメントアウトしておく。[TODO] テストを書き次第削除
+
+```haskell
+-- scheme48.cabal
+-- test-suite scheme444-test
+--   type:                exitcode-stdio-1.0
+--   hs-source-dirs:      test
+--   main-is:             Spec.hs
+--   build-depends:       base
+--                      , scheme444
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   default-language:    Haskell2010
+```
+
+ここからは始めに `app/` 内の `Main.hs` を変更していく。
 
 ```haskell
 module Main where
